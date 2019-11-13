@@ -21,7 +21,9 @@
   "dependencies": {
     "@vuese/cli": "^2.4.1",
     "cac": "^6.5.3",
-    "core-js": "^3.2.1"
+    "core-js": "^3.2.1",
+    "fast-glob": "^3.0.4",
+    "joycon": "^2.2.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.6.2",
