@@ -37,26 +37,6 @@ const joycon = new _joycon.default({
 
 const cli = require('cac')();
 
-async function getConfig(flags) {
-  const {
-    path,
-    data
-  } = await joycon.load(['vuese.config.js', '.vueserc', 'package.json']);
-  const config = {
-    genType: 'docute',
-    title: 'Components',
-    include: ['src/*.js', '**/*.vue'],
-    exclude: [],
-    outDir: 'website',
-    markdownDir: 'components',
-    markdownFile: '',
-    host: '127.0.0.1'
-  };
-  if (path) Object.assign(config, data, flags);
-  Object.assign(config, flags || {});
-  return config;
-}
-
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
@@ -78,15 +58,15 @@ function genMarkdownTpl(parserRes) {
   return !forceGenerate && original === templateStr ? '' : templateStr;
 }
 
+function upper(word) {
+  return word[0].toUpperCase() + word.slice(1);
+}
+
 function genBaseTemplate(label) {
   let str = `## ${upper(label)}\n\n`;
   str += `<!-- @vuese:[name]:${label}:start -->\n`;
   str += `<!-- @vuese:[name]:${label}:end -->\n\n`;
   return str;
-}
-
-function upper(word) {
-  return word[0].toUpperCase() + word.slice(1);
 }
 
 const nameRE = /\[name\]/g;
@@ -189,28 +169,30 @@ class VuexRender extends _markdownRender.default {
     return md;
   }
 
-  getterRender(getterRes) {
-    const getterConfig = this.options.getters;
-    let code = this.renderTabelHeader(getterConfig);
-    getterRes.forEach(getter => {
-      const row = [];
+  addFuncCodeRow(data, code, nameStr, config) {
+    const row = [];
 
-      for (let i = 0; i < getterConfig.length; i++) {
-        if (getterConfig[i] === 'Getter') {
-          row.push(getter.name);
-        } else if (getterConfig[i] === 'Description') {
-          if (getter.describe) {
-            row.push(getter.describe.join(' '));
-          } else {
-            row.push('-');
-          }
+    for (let i = 0; i < config.length; i++) {
+      if (config[i] === nameStr) {
+        row.push(data.name);
+      } else if (config[i] === 'Description') {
+        if (data.describe) {
+          row.push(data.describe.join(' '));
         } else {
           row.push('-');
         }
+      } else if (config[i] === 'Parameters') {
+        if (data.argumentsDesc) {
+          row.push(data.argumentsDesc.join(' '));
+        } else {
+          row.push('-');
+        }
+      } else {
+        row.push('-');
       }
+    }
 
-      code += this.renderTabelRow(row);
-    });
+    code += this.renderTabelRow(row);
     return code;
   }
 
@@ -218,29 +200,7 @@ class VuexRender extends _markdownRender.default {
     const actionConfig = this.options.actions;
     let code = this.renderTabelHeader(actionConfig);
     actionRes.forEach(action => {
-      const row = [];
-
-      for (let i = 0; i < actionConfig.length; i++) {
-        if (actionConfig[i] === 'Action') {
-          row.push(action.name);
-        } else if (actionConfig[i] === 'Description') {
-          if (action.describe) {
-            row.push(action.describe.join(' '));
-          } else {
-            row.push('-');
-          }
-        } else if (actionConfig[i] === 'Parameters') {
-          if (action.argumentsDesc) {
-            row.push(action.argumentsDesc.join(' '));
-          } else {
-            row.push('-');
-          }
-        } else {
-          row.push('-');
-        }
-      }
-
-      code += this.renderTabelRow(row);
+      code = this.addFuncCodeRow(action, code, 'Action', actionConfig);
     });
     return code;
   }
@@ -249,29 +209,37 @@ class VuexRender extends _markdownRender.default {
     const mutationConfig = this.options.mutations;
     let code = this.renderTabelHeader(mutationConfig);
     mutationRes.forEach(mutation => {
-      const row = [];
+      code = this.addFuncCodeRow(mutation, code, 'Mutation', mutationConfig);
+    });
+    return code;
+  }
 
-      for (let i = 0; i < mutationConfig.length; i++) {
-        if (mutationConfig[i] === 'Mutation') {
-          row.push(mutation.name);
-        } else if (mutationConfig[i] === 'Description') {
-          if (mutation.describe) {
-            row.push(mutation.describe.join(' '));
-          } else {
-            row.push('-');
-          }
-        } else if (mutationConfig[i] === 'Parameters') {
-          if (mutation.argumentsDesc) {
-            row.push(mutation.argumentsDesc.join(' '));
-          } else {
-            row.push('-');
-          }
+  addPropertyCodeRow(data, code, nameStr, config) {
+    const row = [];
+
+    for (let i = 0; i < config.length; i++) {
+      if (config[i] === nameStr) {
+        row.push(data.name);
+      } else if (config[i] === 'Description') {
+        if (data.describe) {
+          row.push(data.describe.join(' '));
         } else {
           row.push('-');
         }
+      } else {
+        row.push('-');
       }
+    }
 
-      code += this.renderTabelRow(row);
+    code += this.renderTabelRow(row);
+    return code;
+  }
+
+  getterRender(getterRes) {
+    const getterConfig = this.options.getters;
+    let code = this.renderTabelHeader(getterConfig);
+    getterRes.forEach(getter => {
+      code = this.addPropertyCodeRow(getter, code, 'Getter', getterConfig);
     });
     return code;
   }
@@ -280,30 +248,13 @@ class VuexRender extends _markdownRender.default {
     const stateConfig = this.options.state;
     let code = this.renderTabelHeader(stateConfig);
     stateRes.forEach(state => {
-      const row = [];
-
-      for (let i = 0; i < stateConfig.length; i++) {
-        if (stateConfig[i] === 'Name') {
-          row.push(state.name);
-        } else if (stateConfig[i] === 'Description') {
-          if (state.describe) {
-            row.push(state.describe.join(' '));
-          } else {
-            row.push('-');
-          }
-        } else {
-          row.push('-');
-        }
-      }
-
-      code += this.renderTabelRow(row);
+      code = this.addPropertyCodeRow(state, code, 'Name', stateConfig);
     });
     return code;
-  }
+  } // renderMarkdown() {
+  //     return renderMarkdown(this.render(), this.parserResult);
+  // }
 
-  renderMarkdown() {
-    return renderMarkdown(this.render(), this.parserResult);
-  }
 
 }
 
@@ -337,8 +288,10 @@ function handleMethod(path, handler) {
 function parseJavascript(ast, options = {}) {
   traverse__default(ast, {
     ExportDefaultDeclaration(rootPath) {
-      // Get a description of the component
-      if (options.onDesc) options.onDesc((0, _parser.getComponentDescribe)(rootPath.node));
+      if (options.onDesc) {
+        options.onDesc((0, _parser.getComponentDescribe)(rootPath.node));
+      }
+
       rootPath.traverse({
         ObjectProperty(path) {
           const {
@@ -354,24 +307,19 @@ function parseJavascript(ast, options = {}) {
             onAction,
             onMutation,
             onState
-          } = options; // Processing store getters
+          } = options;
 
           if (onGetter && (0, _parser.isVueOption)(path, 'getters')) {
-            // console.log('RIGHT HERE');
-            // console.log(isVueOption(path, 'getters'));
             handleMethod(path, onGetter);
-          } // Processing store actions
-
+          }
 
           if (onAction && (0, _parser.isVueOption)(path, 'actions')) {
             handleMethod(path, onAction);
-          } // Processing store mutations
-
+          }
 
           if (onMutation && (0, _parser.isVueOption)(path, 'mutations')) {
             handleMethod(path, onMutation);
-          } // Processing store state
-
+          }
 
           if (onState && (0, _parser.isVueOption)(path, 'state')) {
             const properties = path.node.value.properties;
@@ -486,14 +434,30 @@ cli.command('genagain', 'Generate target resources').allowUnknownOptions().actio
     });
   };
 
-  const config = await getConfig(flags);
-  let markdown = genMarkdown(config);
+  const markdown = genMarkdown({
+    genType: 'docute',
+    title: 'Components',
+    include: ['src/*.js'],
+    exclude: [],
+    outDir: 'website',
+    markdownDir: 'components',
+    markdownFile: '',
+    host: '127.0.0.1'
+  }),
+        filename = _path.default.resolve('website/index.html'),
+        indexSource = await _fsExtra.default.readFile(filename, 'utf-8'),
+        reg = /JSON.parse\('(.*)'.replace\(.*\)/,
+        matches = indexSource.match(reg),
+        data = JSON.parse(matches[1].replace(/\&\#34\;/g, '"'));
 
-  let filename = _path.default.resolve('website/index.html');
-
-  const indexSource = await _fsExtra.default.readFile(filename, 'utf-8'),
-        matches = indexSource.match(/JSON.parse\((.*).replace/);
-  console.log(matches[1]); // console.log(path.join(__dirname, '/index.html'));
+  data.push({
+    title: 'Vuex',
+    links: [{
+      title: 'Store',
+      link: '/store.js'
+    }]
+  });
+  await _fsExtra.default.writeFile(filename, indexSource.replace(reg, JSON.stringify(data)));
 });
 const parsed = cli.parse();
 
