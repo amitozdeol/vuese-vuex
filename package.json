@@ -1,0 +1,45 @@
+{
+  "name": "vuese-vuex",
+  "version": "1.0.0",
+  "description": "Plugin for vuese to allow it to work with vuex store files",
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
+  "bin": {
+    "vuese-vuex": "bin/index.js"
+  },
+  "scripts": {
+    "test": "jest test"
+  },
+  "repository": "https://github.com/TayHobbs/vuese-vuex",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "keywords": [
+    "markdown",
+    "vue",
+    "generator",
+    "document",
+    "docute",
+    "vuese",
+    "vuex"
+  ],
+  "author": "Taylor Hobbs",
+  "license": "MIT",
+  "dependencies": {
+    "@vuese/cli": "^2.8.3",
+    "cac": "^6.5.3",
+    "core-js": "^3.2.1",
+    "fast-glob": "^3.0.4",
+    "joycon": "^2.2.5"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.2",
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
+    "babel-jest": "^24.9.0",
+    "eslint": "^6.6.0",
+    "jest": "^24.9.0"
+  }
+}
