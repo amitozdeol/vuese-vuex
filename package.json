@@ -16,6 +16,15 @@
   "engines": {
     "node": ">= 0.10.0"
   },
+  "keywords": [
+    "markdown",
+    "vue",
+    "generator",
+    "document",
+    "docute",
+    "vuese",
+    "vuex"
+  ],
   "author": "Taylor Hobbs",
   "license": "MIT",
   "dependencies": {
