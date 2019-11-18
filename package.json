@@ -1,6 +1,6 @@
 {
   "name": "vuese-vuex",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Plugin for vuese to allow it to work with vuex store files",
   "directories": {
     "doc": "doc",
