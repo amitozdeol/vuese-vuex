@@ -21,7 +21,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 const logger = _logHorizon.default.create();
 
-async function genMarkdown(include = ['src/*.js']) {
+async function genMarkdown(include = ['src/**/*.js']) {
   let genType = 'docute',
       exclude = [],
       outDir = 'website',
